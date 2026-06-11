@@ -1,0 +1,230 @@
+table _dash2
+	lineageTag: 4a97e734-b653-4116-9f2f-da7e046f9d3b
+
+	measure Name_A = SELECTEDVALUE('dim_companies'[Name])
+		lineageTag: 5f2a3491-2fd6-46b7-9104-85a8c88b88ae
+
+	measure Logo_A = ```
+			
+			VAR OriginalLink = SELECTEDVALUE('dim_companies'[Logo_URL])
+			/* Tách lấy File ID bằng cách thay phần đầu bằng rỗng */
+			VAR FileID = SUBSTITUTE(OriginalLink, "https://drive.google.com/uc?export=view&id=", "")
+			RETURN
+			IF(
+			    ISBLANK(FileID), 
+			    BLANK(), 
+			    "https://lh3.googleusercontent.com/d/" & FileID
+			)
+			```
+		lineageTag: 3107d067-98bf-4483-9044-7bd486cdd4e2
+
+	measure 'Value A' = [Total Value]
+		lineageTag: af4e4e34-95e1-4058-b240-ec72bb3a9a4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Value B' =
+			
+			VAR SelectedPeer = SELECTEDVALUE(Dim_Companies_Peer[Ticker])
+			RETURN
+			CALCULATE(
+			    [Total Value],
+			    REMOVEFILTERS(Dim_Companies),
+			    TREATAS({SelectedPeer}, Dim_Companies[Ticker])
+			)
+		lineageTag: 95948717-dab5-47f9-bf6b-0c89687e8e92
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Hide_In_Slicer_A = ```
+			
+			VAR SelectedPeer = ALLSELECTED(Dim_Companies_Peer[Ticker])
+			VAR CurrentCompany = SELECTEDVALUE(Dim_Companies[Ticker])
+			RETURN 
+			IF(CurrentCompany IN SelectedPeer, 0, 1)
+			```
+		formatString: 0
+		lineageTag: 339827ca-488d-4578-a6cb-b0b3c58e6712
+
+	measure Hide_In_Slicer_B = ```
+			
+			VAR SelectedCompany = ALLSELECTED(Dim_Companies[Ticker])
+			VAR CurrentPeer = SELECTEDVALUE(Dim_Companies_Peer[Ticker])
+			RETURN 
+			IF(CurrentPeer IN SelectedCompany, 0, 1)
+			```
+		formatString: 0
+		lineageTag: eda280d9-5b0c-4c47-99cb-9f276a1e38d1
+
+	measure Name_B =
+			
+			SELECTEDVALUE(
+			    Dim_Companies_Peer[Name], -- Thay bằng cột chứa tên công ty của bạn
+			    "Please choose Company B"                -- Giá trị hiển thị khi chưa bấm Slicer
+			)
+		lineageTag: 9cce1198-2a1b-459c-b8e6-65ba93073aa6
+
+	measure Logo_B = ```
+			
+			VAR OriginalLink = SELECTEDVALUE('Dim_Companies_Peer'[Logo_URL])
+			/* Tách lấy File ID bằng cách thay phần đầu bằng rỗng */
+			VAR FileID = SUBSTITUTE(OriginalLink, "https://drive.google.com/uc?export=view&id=", "")
+			RETURN
+			IF(
+			    ISBLANK(FileID), 
+			    BLANK(), 
+			    "https://lh3.googleusercontent.com/d/" & FileID
+			)
+			```
+		lineageTag: 350cc725-a93b-4135-b21e-560e749c94b7
+
+	measure 'ROE A' = DIVIDE([NP A], [Eq A], 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 6a5f51e4-26d2-4da1-9425-78dbee49b190
+
+	measure 'ROE B' = DIVIDE([NP B], [Eq B], 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f55e9f34-4b3c-4d60-af42-057e9807e1ea
+
+	measure 'NP Growth A' =
+			
+			VAR CurrentTK = SELECTEDVALUE(Dim_Calendar[TimeKey])
+			VAR PrevTK = IF(RIGHT(CurrentTK, 1) = "1", CurrentTK - 7, CurrentTK - 1)
+			VAR CurrentNP = [NP A]
+			VAR PrevNP = CALCULATE([NP A], ALL(Dim_Calendar), Dim_Calendar[TimeKey] = PrevTK)
+			RETURN DIVIDE(CurrentNP - PrevNP, PrevNP, 0)
+		lineageTag: 3b88c647-8660-4b1b-82e6-06ab3bddc32a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'NP A' = CALCULATE([Value A], Dim_Items[ItemID] = "60")
+		lineageTag: e67c8ba9-19f4-4805-8428-596c0b835a52
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'NP B' = CALCULATE([Value B], Dim_Items[ItemID] = "60")
+		lineageTag: b50971c7-a6c8-4902-a433-f044c488f2d3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Eq A' = CALCULATE([Value A], Dim_Items[ItemID] IN {"400", "BANK_VIII_EQUITY"})
+		lineageTag: 3e18fffd-dc75-4a83-b17b-35c4d1b29580
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Eq B' = CALCULATE([Value B], Dim_Items[ItemID] IN {"400", "BANK_VIII_EQUITY"})
+		lineageTag: 80cc7ba6-ea22-4199-9a1c-79e4c37bcaea
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Assets A' = CALCULATE([Value A], Dim_Items[ItemID] IN {"270", "BANK_A0"})
+		lineageTag: d3737932-8225-4fe8-8b03-be70bc8e71a3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Assets B' = CALCULATE([Value B], Dim_Items[ItemID] IN {"270", "BANK_A0"})
+		lineageTag: 709a648f-1eed-48a3-bdf6-121909fb5455
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rev A' = CALCULATE([Value A], Dim_Items[ItemID] IN {"10", "BANK_IS_03", "SEC_IS_01"})
+		lineageTag: ad53e6c5-de8e-45c0-9fe5-9db3fa017152
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rev B' = CALCULATE([Value B], Dim_Items[ItemID] IN {"10", "BANK_IS_03", "SEC_IS_01"})
+		lineageTag: 91c4aec8-50b4-48b7-b92f-f7be6a21d9ca
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Debt A' = CALCULATE([Value A], Dim_Items[ItemID] IN {"300", "BANK_B0"})
+		lineageTag: db04a5d3-9086-4bd5-860f-f3abf4f82280
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Debt B' = CALCULATE([Value B], Dim_Items[ItemID] IN {"300", "BANK_B0"})
+		lineageTag: de6a521e-e21b-4bb8-8b3c-3c620e63d3bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Net Margin A' = DIVIDE([NP A], [Rev A], 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 2dbd33ea-c0c0-4d12-b071-c79dd4bf963f
+
+	measure 'Net Margin B' = DIVIDE([NP B], [Rev B], 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 0e6a5a9a-fcd6-45d7-9958-8423e30725d3
+
+	measure Dynamic_Title_ROE =
+			
+			"ROE Trend: " & SELECTEDVALUE(Dim_Companies[Ticker], "A") & " vs " & SELECTEDVALUE(Dim_Companies_Peer[Ticker], "B")
+		lineageTag: e7590f46-3a86-42f5-bf62-aa7aaac0da66
+
+	measure Dynamic_Title_Profit =
+			
+			"Net Profit Growth: " & SELECTEDVALUE(Dim_Companies[Ticker], "A") & " vs " & SELECTEDVALUE(Dim_Companies_Peer[Ticker], "B")
+		lineageTag: 6adecdfa-cd0a-45f0-bb21-ff59ea14ff3d
+
+	measure 'NP Growth B' =
+			
+			VAR CurrentTK = SELECTEDVALUE(Dim_Calendar[TimeKey])
+			VAR PrevTK = IF(RIGHT(CurrentTK, 1) = "1", CurrentTK - 7, CurrentTK - 1)
+			VAR CurrentNP = [NP B]
+			VAR PrevNP = CALCULATE([NP B], ALL(Dim_Calendar), Dim_Calendar[TimeKey] = PrevTK)
+			RETURN DIVIDE(CurrentNP - PrevNP, PrevNP, 0)
+		lineageTag: c0fe4e94-c6ba-41dd-93b8-653aa34f1465
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Dynamic_Title_Growth_EN = ```
+			
+			VAR TickerA = SELECTEDVALUE(Dim_Companies[Ticker], "Company A")
+			VAR TickerB = SELECTEDVALUE(Dim_Companies_Peer[Ticker], "Company B")
+			RETURN 
+			"Net Profit Growth (QoQ): " & TickerA & " vs " & TickerB
+			```
+		lineageTag: ce25c2bf-2fd5-4c60-a1ab-cfa0ac413970
+
+	measure Dynamic_Title_CapStructure_EN = ```
+			
+			VAR TickerA = SELECTEDVALUE(Dim_Companies[Ticker], "Company A")
+			VAR TickerB = SELECTEDVALUE(Dim_Companies_Peer[Ticker], "Company B")
+			RETURN 
+			"Capital Structure: " & TickerA & " vs " & TickerB
+			```
+		lineageTag: d63ac1e2-b3e2-4743-b14a-6c96e2659be1
+
+	measure Dynamic_Title_Margin_EN = ```
+			
+			VAR TickerA = SELECTEDVALUE(Dim_Companies[Ticker], "Company A")
+			VAR TickerB = SELECTEDVALUE(Dim_Companies_Peer[Ticker], "Company B")
+			RETURN 
+			"Net Margin Comparison: " & TickerA & " vs " & TickerB
+			```
+		lineageTag: 24676b8c-c60d-42f8-b876-771a69dfce35
+
+	measure Cap_Legend_Debt = Debt
+		lineageTag: 0b32d600-ea81-4740-9953-181fcae4f284
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 7494d961-ec01-4e30-8875-2ff3177e6281
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _dash2 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

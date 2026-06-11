@@ -1,0 +1,45 @@
+relationship 5adb748f-51e4-4f5e-94d4-f4a1c2116217
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_companies.First_Trading_Date
+	toColumn: LocalDateTable_edcdeeed-69ad-421e-ad7f-51e0ffa5a288.Date
+
+relationship 9b8dfd0d-04c6-4848-847d-e5fb371216d0
+	joinOnDateBehavior: datePartOnly
+	fromColumn: financial_ratios.UpdatedAt
+	toColumn: LocalDateTable_41de6819-49e8-4408-965b-4c26c699583a.Date
+
+relationship 4682240d-3168-49d1-8a84-2694e6e5778f
+	fromColumn: fact_financials.Ticker
+	toColumn: dim_companies.Ticker
+
+	annotation PBI_IsFromSource = FS
+
+relationship 1aadfe17-14b4-41bd-b120-09938d3ac738
+	fromColumn: financial_ratios.Ticker
+	toColumn: dim_companies.Ticker
+
+	annotation PBI_IsFromSource = FS
+
+relationship f5d88b46-c506-40fc-a943-85d7ef462a2d
+	fromColumn: fact_financials.ItemID
+	toColumn: dim_items.ItemID
+
+	annotation PBI_IsFromSource = FS
+
+relationship d0d2f5ec-323a-4613-ba09-3fc2d19f5ad2
+	fromColumn: financial_ratios.TimeKey
+	toColumn: dim_calendar.TimeKey
+
+	annotation PBI_IsFromSource = FS
+
+relationship 9b0c9575-3dab-4916-aadb-04a8500af2c6
+	fromColumn: fact_financials.TimeKey
+	toColumn: dim_calendar.TimeKey
+
+	annotation PBI_IsFromSource = FS
+
+relationship dc19433c-b0e7-4c97-a42c-f9d1ca8ab59f
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Dim_Companies_Peer.First_Trading_Date
+	toColumn: LocalDateTable_1e19cfa6-8d40-4da8-bc14-e5e5261b43e4.Date
+

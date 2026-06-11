@@ -1,0 +1,70 @@
+table dim_companies
+	lineageTag: b2069052-6e26-4703-a2cd-9de7f8ca1c42
+
+	column Ticker
+		dataType: string
+		lineageTag: 194ec330-78c9-41c1-aa0a-5687b0cbb568
+		summarizeBy: none
+		sourceColumn: Ticker
+
+		annotation SummarizationSetBy = Automatic
+
+	column Name
+		dataType: string
+		lineageTag: 4d5287b9-acc2-4f5d-a949-0edf4ee827c8
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Exchange
+		dataType: string
+		lineageTag: 8fb36b73-0b77-4b71-80a3-8acc2a1dd299
+		summarizeBy: none
+		sourceColumn: Exchange
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sector_ICB
+		dataType: string
+		lineageTag: d9a3f0b3-f101-4ea7-b13e-086e3e555379
+		summarizeBy: none
+		sourceColumn: Sector_ICB
+
+		annotation SummarizationSetBy = Automatic
+
+	column First_Trading_Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: dca8af26-516a-42af-bf20-079b5c8e68aa
+		summarizeBy: none
+		sourceColumn: First_Trading_Date
+
+		variation Variation
+			isDefault
+			relationship: 5adb748f-51e4-4f5e-94d4-f4a1c2116217
+			defaultHierarchy: LocalDateTable_edcdeeed-69ad-421e-ad7f-51e0ffa5a288.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Logo_URL
+		dataType: string
+		lineageTag: d4668fe8-d5de-406c-af6d-d39add4dda39
+		summarizeBy: none
+		sourceColumn: Logo_URL
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_companies = m
+		mode: import
+		source =
+				let
+				    Source = MySQL.Database("localhost", "vn30_data", [ReturnSingleDatabase=true]),
+				    vn30_data_dim_companies = Source{[Schema="vn30_data",Item="dim_companies"]}[Data]
+				in
+				    vn30_data_dim_companies
+
+	annotation PBI_ResultType = Table
+

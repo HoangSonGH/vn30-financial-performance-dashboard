@@ -1,0 +1,70 @@
+table _cal
+	lineageTag: 74b8b652-e278-4faa-b7af-12bfb635aaa7
+
+	measure 'Total Value' = SUM(fact_financials[Value_Current])
+		lineageTag: a6b72094-2d06-4d1b-b945-ff44dd96fb57
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Revenue (bn)' = CALCULATE([Total Value], Dim_Items[ItemID] IN {"10", "BANK_IS_03", "BANK_IS_FEE", "SEC_IS_01", "SEC_IS_03", "SEC_IS_06"}) / 1000000000
+		lineageTag: e71406f6-2356-4530-a84a-4b7ed8170461
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Net Profit' = CALCULATE([Total Value], Dim_Items[ItemID] = "60") / 1000000000
+		lineageTag: e9315c7e-52fd-4bc8-83c9-ec4ead9dfd17
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Market ROE' = VAR NP = CALCULATE([Total Value], Dim_Items[ItemID] = "60") VAR Eq = CALCULATE([Total Value], Dim_Items[ItemID] IN {"400", "BANK_VIII_EQUITY"}) RETURN DIVIDE(NP, Eq, 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 7811796b-3d78-41cd-a071-750dfdf03e21
+
+	measure 'Market ROA' = VAR NP = CALCULATE([Total Value], Dim_Items[ItemID] = "60") VAR Assets = CALCULATE([Total Value], Dim_Items[ItemID] IN {"270", "BANK_A0"}) RETURN DIVIDE(NP, Assets, 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f8f55dee-1a03-4850-b0ff-e5a8b8e5a37a
+
+	measure 'NPAT Growth (QoQ)' = VAR CurrentTK = SELECTEDVALUE(Dim_Calendar[TimeKey]) VAR PrevTK = IF(RIGHT(CurrentTK, 1) = "1", CurrentTK - 7, CurrentTK - 1) VAR CurrentNP = CALCULATE([Total Value], Dim_Items[ItemID] = "60") VAR PrevNP = CALCULATE([Total Value], ALL(Dim_Calendar), Dim_Calendar[TimeKey] = PrevTK, Dim_Items[ItemID] = "60") RETURN DIVIDE(CurrentNP - PrevNP, PrevNP, 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 8c1acf03-f6cc-4cb6-9601-829d4b808ee2
+
+	measure 'Asset Growth (QoQ)' =
+			
+			VAR CurrentTK = SELECTEDVALUE(Dim_Calendar[TimeKey])
+			VAR PrevTK = IF(RIGHT(CurrentTK, 1) = "1", CurrentTK - 7, CurrentTK - 1)
+			VAR CurrentAs = CALCULATE([Total Value], Dim_Items[ItemID] IN {"270", "BANK_A0"})
+			VAR PrevAs = CALCULATE([Total Value], ALL(Dim_Calendar), Dim_Calendar[TimeKey] = PrevTK, Dim_Items[ItemID] IN {"270", "BANK_A0"})
+			RETURN DIVIDE(CurrentAs - PrevAs, PrevAs, 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 1b19c46a-5b42-4c33-82fd-6f2727f4c174
+
+	measure 'Total Assets (Market)' =
+			
+			VAR LatestTimeKey = MAX(Fact_Financials[TimeKey]) -- Tìm quý cuối cùng có dữ liệu trong DB
+			RETURN
+			CALCULATE(
+			    [Total Value],
+			    Dim_Items[ItemID] IN {"270", "BANK_A0"},
+			    Dim_Calendar[TimeKey] = LatestTimeKey -- Ép Power BI chỉ lấy dữ liệu quý đó
+			)
+		lineageTag: ff9cad0b-353f-499e-8c10-9722056da557
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Assets (bn VND)' = DIVIDE([Total Assets (Market)], 1000000000, 0) -- Chia cho 1 tỷ
+		lineageTag: 005d6bb7-78c2-4a59-9105-604916097f8e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition _cal = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

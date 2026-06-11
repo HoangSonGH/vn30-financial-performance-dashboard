@@ -1,0 +1,16 @@
+{
+  "name": "DMP",
+  "dataColors": [
+    "#01B8AA",
+    "#374649",
+    "#FD625E",
+    "#F2C80F",
+    "#5F6B6D",
+    "#8AD4EB",
+    "#FE9666",
+    "#A66999"
+  ],
+  "minimum": "#FD625E",
+  "center": "#F5D33F",
+  "maximum": "#01B8AA"
+}

@@ -1,0 +1,141 @@
+table _dash3
+	lineageTag: d35a5943-2f28-4ff7-a569-3fcd2c77f3d1
+
+	measure 'Company Header Info' = ```
+			
+			VAR Name_C = SELECTEDVALUE(dim_companies[Name], "Please Select A Company")
+			VAR Sector = SELECTEDVALUE(dim_companies[Sector_ICB], "N/A")
+			VAR Exchange = SELECTEDVALUE(Dim_Companies[Exchange], "N/A")
+			VAR First_Date = SELECTEDVALUE(dim_companies[First_Trading_Date], "N/A") -- Giả định tên cột là FirstTradingDate
+			
+			RETURN 
+			Name_C & " | " & Sector & 
+			" | Exchange: " & Exchange & 
+			" | Listing Date: " & FORMAT(First_Date, "MMMM dd, yyyy")
+			```
+		lineageTag: 16d45715-4259-48ea-97ee-2979b9cb2629
+
+	measure Revenue_Trend =
+			
+			CALCULATE(
+			    [Total Value],
+			    Dim_Items[ItemID] IN {"10", "BANK_IS_03", "SEC_IS_01"}
+			) / 1000000000 -- Chia 1 tỷ để ra đơn vị bn VND
+		lineageTag: bf32ff6e-6721-4c0f-8411-76dbfc092392
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure NetProfit_Trend =
+			
+			CALCULATE(
+			    [Total Value],
+			    Dim_Items[ItemID] = "60"
+			) / 1000000000
+		lineageTag: 91207cc3-8867-4bdd-9f8e-cefbbf85cee0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Revenue Status' = ```
+			
+			IF(
+			    [Revenue_Trend] < 0, 
+			    "Warning: Negative Revenue detected!", 
+			    "Status: Healthy Revenue"
+			)
+			```
+		lineageTag: 143f3827-b08e-4948-859e-5f69020549bf
+
+	measure 'Revenue Status Color' = ```
+			
+			IF(
+			    [Revenue_Trend] < 0, 
+			    "#FF0000", -- Màu Đỏ (Warning)
+			    "#008080"  -- Màu Teal (Healthy - cùng tông với Dashboard của bạn)
+			)
+			```
+		lineageTag: 574f4ebc-d5e2-4e3c-9472-8a6c856089e7
+
+	measure Revenue_For_Margin = ```
+			
+			VAR IsBank = SELECTEDVALUE(dim_companies[Sector_ICB]) = "Bank"
+			RETURN 
+			IF(IsBank, 
+			    CALCULATE([Total Value], Dim_Items[ItemID] IN {"BANK_IS_03", "BANK_IS_FEE", "BANK_IS_OTHER"}), 
+			    CALCULATE([Total Value], Dim_Items[ItemID] IN {"10", "SEC_IS_01"})
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: be22d0a6-34f3-442d-a9ae-103a3b075973
+
+	measure Gross_Margin = ```
+			
+			VAR IsBank = SELECTEDVALUE(dim_companies[Sector_ICB]) = "Bank"
+			
+			-- Tử số: Lấy Lợi nhuận gộp (Corp) hoặc Thu nhập lãi thuần (Bank)
+			VAR GP = 
+			    IF(IsBank, 
+			        CALCULATE([Total Value], Dim_Items[ItemID] = "BANK_IS_03"), 
+			        CALCULATE([Total Value], Dim_Items[ItemID] = "20")
+			    )
+			
+			-- Mẫu số: Đảm bảo Revenue_For_Margin của Bank đã cộng cả lãi thuần + phí + khác
+			VAR Revenue = [Revenue_For_Margin]
+			
+			RETURN 
+			    IF(Revenue = 0, 0, DIVIDE(GP, Revenue, 0))
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: bd839db3-b47a-4363-b50f-2c2c38eb1106
+
+	measure Net_Margin = ```
+			
+			VAR NP = CALCULATE([Total Value], Dim_Items[ItemID] = "60")
+			RETURN 
+			    DIVIDE(NP, [Revenue_For_Margin], BLANK())
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: d3daf0b0-e15c-46b6-81a7-b11dc922bc14
+
+	measure Debt = CALCULATE([Total Value], Dim_Items[ItemID] IN {"300", "BANK_B0"})
+		lineageTag: 5e8e3064-60d5-4b6e-8266-71b69b7234e4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Equity = CALCULATE([Total Value], Dim_Items[ItemID] IN {"400", "BANK_VIII_EQUITY"})
+		lineageTag: eca8520a-de94-43fd-ab71-883942612975
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Matrix_Value_bnVND = ```
+			
+			VAR RawValue = [Total Value] -- Measure tổng giá trị bạn đã có
+			RETURN 
+			    IF(
+			        ISBLANK(RawValue) || RawValue = 0, 
+			        BLANK(), 
+			        DIVIDE(RawValue, 1000000000, 0)
+			    )
+			```
+		lineageTag: 4fd7ff5f-03f2-4528-9bc7-50c9934cc103
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Column1
+		dataType: string
+		lineageTag: 1dff6d71-45bb-454d-b63e-d499b96b4390
+		summarizeBy: none
+		sourceColumn: Column1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _dash3 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

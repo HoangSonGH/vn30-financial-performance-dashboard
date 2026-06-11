@@ -1,0 +1,58 @@
+table fact_financials
+	lineageTag: 125e7090-3f63-425f-8e83-ab8e00d4cda7
+
+	column FactID
+		dataType: int64
+		formatString: 0
+		lineageTag: 592048a5-48b5-4603-949b-416c61f276c0
+		summarizeBy: count
+		sourceColumn: FactID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ticker
+		dataType: string
+		lineageTag: f11e38a7-f57e-4b9c-aa8c-94e4db8ee1f5
+		summarizeBy: none
+		sourceColumn: Ticker
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 340a8f67-230a-4ca5-8600-dc3254b4eeee
+		summarizeBy: none
+		sourceColumn: TimeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemID
+		dataType: string
+		lineageTag: 1836b4a5-dd1e-46ca-a5c3-de3d64c88619
+		summarizeBy: none
+		sourceColumn: ItemID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value_Current
+		dataType: double
+		lineageTag: 10526111-8011-4359-bc58-12a749726709
+		summarizeBy: sum
+		sourceColumn: Value_Current
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_financials = m
+		mode: import
+		source =
+				let
+				    Source = MySQL.Database("localhost", "vn30_data", [ReturnSingleDatabase=true]),
+				    vn30_data_fact_financials = Source{[Schema="vn30_data",Item="fact_financials"]}[Data]
+				in
+				    vn30_data_fact_financials
+
+	annotation PBI_ResultType = Table
+

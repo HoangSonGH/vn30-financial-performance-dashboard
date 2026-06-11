@@ -1,0 +1,30 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["dim_companies","dim_items","financial_ratios","fact_financials","dim_calendar","_cal","_dash2","_dash3"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table dim_companies
+ref table DateTableTemplate_1027d166-ec62-4ccc-b165-26b95320a0e7
+ref table LocalDateTable_edcdeeed-69ad-421e-ad7f-51e0ffa5a288
+ref table dim_items
+ref table financial_ratios
+ref table LocalDateTable_41de6819-49e8-4408-965b-4c26c699583a
+ref table fact_financials
+ref table dim_calendar
+ref table _cal
+ref table Dim_Companies_Peer
+ref table LocalDateTable_1e19cfa6-8d40-4da8-bc14-e5e5261b43e4
+ref table _dash2
+ref table _dash3
+
+ref cultureInfo en-US
+

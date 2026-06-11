@@ -1,0 +1,63 @@
+table Dim_Companies_Peer
+	lineageTag: 15bd2304-6dcf-416b-973e-0f31faeeb021
+
+	column Ticker
+		lineageTag: 4329abdf-c455-4c3e-a6d0-087aaa38ad25
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_companies[Ticker]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Name
+		lineageTag: c057389a-b82f-4b8c-9b3f-1c51d2655971
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_companies[Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Exchange
+		lineageTag: a5c69702-9e35-458b-a1c2-fd5280de1a40
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_companies[Exchange]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sector_ICB
+		lineageTag: 950aef8f-6278-404e-ada0-ac61b21d1ddc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_companies[Sector_ICB]
+
+		annotation SummarizationSetBy = Automatic
+
+	column First_Trading_Date
+		formatString: General Date
+		lineageTag: c3348f76-0d5b-491e-8027-ccc22905c2f6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_companies[First_Trading_Date]
+
+		variation Variation
+			isDefault
+			relationship: dc19433c-b0e7-4c97-a42c-f9d1ca8ab59f
+			defaultHierarchy: LocalDateTable_1e19cfa6-8d40-4da8-bc14-e5e5261b43e4.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Logo_URL
+		lineageTag: c725d6a4-c37f-49b4-8c06-323dc75ede8f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_companies[Logo_URL]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Companies_Peer = calculated
+		mode: import
+		source = ALL(Dim_Companies)
+
+	annotation PBI_Id = b8cbfa6a87c94500b6ffc6782fb04a3c
+

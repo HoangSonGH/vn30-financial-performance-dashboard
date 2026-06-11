@@ -1,0 +1,46 @@
+table dim_items
+	lineageTag: aa258b3f-79c3-45be-b60c-df68ea2ca22f
+
+	column ItemID
+		dataType: string
+		lineageTag: 137a26c8-4dec-4703-840d-48ae31d0c4f4
+		summarizeBy: none
+		sourceColumn: ItemID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemName_VN
+		dataType: string
+		lineageTag: 126b2309-2169-4232-a4c1-bebc687a6823
+		summarizeBy: none
+		sourceColumn: ItemName_VN
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemName_EN
+		dataType: string
+		lineageTag: c9987272-0b6a-46b7-916e-713bc382f793
+		summarizeBy: none
+		sourceColumn: ItemName_EN
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportType
+		dataType: string
+		lineageTag: dc4c319f-7a25-4af9-b77c-ff07549025bb
+		summarizeBy: none
+		sourceColumn: ReportType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_items = m
+		mode: import
+		source =
+				let
+				    Source = MySQL.Database("localhost", "vn30_data", [ReturnSingleDatabase=true]),
+				    vn30_data_dim_items = Source{[Schema="vn30_data",Item="dim_items"]}[Data]
+				in
+				    vn30_data_dim_items
+
+	annotation PBI_ResultType = Table
+
